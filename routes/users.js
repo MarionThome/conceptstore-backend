@@ -1,9 +1,75 @@
 var express = require('express');
 var router = express.Router();
+const bcrypt = require('bcrypt');
+const uid2 = require('uid2');
+const User = require('../models/users');
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+router.post('/signup', (req, res) => {
+  if(req.body.username && req.body.password){
+    User.findOne({username : req.body.username}).then((data) => {
+      if(data){
+        res.json({result : false, error : "Username already exist"})
+      } else {
+        const hash = bcrypt.hashSync(req.body.password, 10);
+        const newUser = new User({
+          username: req.body.username,
+          password: hash,
+          token: uid2(32),
+          pastOrders : []
+         });
+         newUser.save().then(res.json({result : true, user : newUser.token}))
+      }
+    })
+  }
+  else {
+    res.json({result : false, error : "missing or empty fields"})
+  }
 });
+
+router.post('/signin', (req, res) => {
+  if (!req.body.username || !req.body.password) {
+    res.json({ result: false, error: 'Missing or empty fields' });
+    return;
+  }
+  User.findOne({ username: req.body.username }).then(data => {
+    if (data && bcrypt.compareSync(req.body.password, data.password)) {
+      res.json({ result: true, data: {username : data.username, token : data.token} });
+    } else {
+      res.json({ result: false, error: 'invalid username or password' });
+    }
+  });
+});
+
+router.post('/new-order', (req, res) => {
+  if(!req.body.token || !req.body.products){
+    res.json({ result: false, error: 'Missing informations' });
+    return
+  } 
+  User.findOneAndUpdate({token : req.body.token}, {
+    $push : { 
+      pastOrders : {
+        date : new Date(), 
+        products : req.body.products
+      }
+    }
+  }).then((data) => 
+  {
+    res.json({result : true, products : data})
+  }
+  )
+})
+
+router.get('/past-orders/:token', (req, res) => {
+  User.findOne({token : req.params.token}).populate("pastOrders.products").then((data) => {
+    if(!data){
+      res.json({result : false , error : "no past orders" })
+    } else {
+      res.json({result : true, orders : data.pastOrders  })
+    }
+  })
+})
+
+
+
 
 module.exports = router;
