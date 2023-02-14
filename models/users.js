@@ -8,6 +8,7 @@ const userSchema = mongoose.Schema({
     pastOrders : [{
         date : Date, 
         products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'products' }],
+        totalPrice : Number,
     }],
     favs : [{type: mongoose.Schema.Types.ObjectId, ref: 'products'}]
    });

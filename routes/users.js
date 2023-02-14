@@ -18,7 +18,8 @@ router.post("/signup", (req, res) => {
           pastOrders: [],
           favs: [],
         });
-        newUser.save().then(res.json({ result: true, user: { username: data.username, token: data.token } }));
+        newUser.save().then((data) => {
+          res.json({ result: true, user: { username: data.username, token: data.token } })})
       }
     });
   } else {
@@ -54,6 +55,7 @@ router.post("/new-order", (req, res) => {
       $push: {
         pastOrders: {
           date: new Date(),
+          toTalPrice : req.body.price,
           products: req.body.products,
         },
       },
