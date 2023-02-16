@@ -94,6 +94,23 @@ router.post("/new-fav", (req, res) => {
   });
 });
 
+router.delete("/delete-fav", (req, res) => {
+  if (!req.body.token || !req.body.id) {
+    res.json({ result: false, error: "Missing informations" });
+    return;
+  }
+  User.updateOne(
+    { token: req.body.token },
+    {
+      $pull: {
+        favs: req.body.id,
+      },
+    }
+  ).then(() => {
+    res.json({ result: true });
+  });
+});
+
 router.get("/favorites/:token", (req, res) => {
   User.findOne({ token: req.params.token })
     .populate("favs")
