@@ -5,6 +5,7 @@ const userSchema = mongoose.Schema({
     username: String,
     password: String,
     token: String,
+    profilePic : String,
     pastOrders : [{
         date : Date, 
         products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'products' }],
