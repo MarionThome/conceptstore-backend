@@ -3,7 +3,7 @@ var router = express.Router();
 const bcrypt = require("bcrypt");
 const uid2 = require("uid2");
 const User = require("../models/users");
-const cloudinary = require('cloudinary').v2;
+const {cloudinary} = require("../utils/cloudinary");
 
 router.post("/signup", (req, res) => {
   if (req.body.username && req.body.password) {
@@ -125,22 +125,37 @@ router.get("/favorites/:token", (req, res) => {
     });
 });
 
-// router.post("/profile-pic/:token", async (req, res) => {
-//   if(!req.body.file){
-//     res.json({result : false, error : "no file sent"})
-//     return
-//   }
-//   try {
-//     const fileStr = req.body.file
-//     const uploadResponse= await cloudinary.uploader.upload(fileStr , {
-//       upload_preset : "cloudinary_react"
-//     }); 
-//     console.log(uploadResponse)
-//   }
-//   catch {
-//     console.log("error")
-//   }
-//   // User.findOneAndUpdate({token : req.params.token}),  
-// })
+router.post("/profile-pic/:token", async (req, res) => {
+  if(!req.body.file){
+    res.json({result : false, error : "no file sent"})
+    return
+  }
+  try {
+    const fileStr = req.body.file
+    const uploadResponse= await cloudinary.uploader.upload(fileStr , {
+      upload_preset : "cloudinary_react"
+    }); 
+    console.log(uploadResponse)
+    const updatedUser = await User.findOneAndUpdate({token : req.params.token}, {
+      profilePic : uploadResponse.secure_url
+    })
+    res.json({result : true, profilePic : updatedUser.profilePic })
+  }
+  catch (err) {
+    console.log(err)
+    res.json({result : false , error : "something went wrong"})
+  } 
+})
+
+
+router.get("/profile-pic/:token", (req, res) => {
+  User.findOne({token : req.params.token}).then((data) => {
+    if(!data){
+      res.json({result : false, error : "user not found"})
+      return 
+    }
+    res.json({result : true, profilePic : data.profilePic})
+  })
+})
 
 module.exports = router;
