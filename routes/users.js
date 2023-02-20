@@ -154,6 +154,10 @@ router.get("/profile-pic/:token", (req, res) => {
       res.json({result : false, error : "user not found"})
       return 
     }
+    if(!data.profilePic){
+      res.json({result : false, error : "picture not found"})
+      return
+    }
     res.json({result : true, profilePic : data.profilePic})
   })
 })
