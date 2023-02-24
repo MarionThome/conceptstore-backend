@@ -57,7 +57,7 @@ router.post("/new-order", (req, res) => {
       $push: {
         pastOrders: {
           date: new Date(),
-          toTalPrice : req.body.price,
+          totalPrice : req.body.price,
           products: req.body.products,
         },
       },
